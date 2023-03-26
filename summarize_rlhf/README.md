@@ -32,8 +32,9 @@ For an in-depth description of the example, please refer to our [blog post](http
     ```
 
 3. PPO training:
+    以1卡放 6B Reward Model(RM) ，4卡训练 6B Policy Model（PM）为例
     ```bash
-    accelerate launch --config_file configs/default_accelerate_config.yaml trlx_gptj_text_summarization.py
+    accelerate launch --num_processes 4 --config_file configs/accelerate/default_accelerate_config.yaml trlx_tldr.py --output_dir outputs/tldr --trl_config_file configs/ppo_tldr.yml --n_eval_prompts 1024 --rw_model_batch_size 64
     ```
     Checkpoint: [PPO](https://huggingface.co/CarperAI/openai_summarize_tldr_ppo)
 
