@@ -45,13 +45,13 @@ def parse_args():
     parser.add_argument(
         "--dataset_name",
         type=str,
-        default="/mnt/dolphinfs/hdd_pool/docker/user/hadoop-mtai/llm-fine-tuning/data/rlhf/openai_summarize_tldr",
+        default="CarperAI/openai_summarize_tldr",
         help="The name or path of the dataset to use (via the datasets library).",
     )
     parser.add_argument(
         "--rw_model_name_or_path",
         type=str,
-        default="/mnt/dolphinfs/hdd_pool/docker/user/hadoop-mtai/llm-fine-tuning/models/public/openai_summarize_tldr_rm_checkpoint",
+        default="CarperAI/openai_summarize_tldr_rm_checkpoint",
         help="Reward model path to pretrained model or model identifier from huggingface.co/models.",
         # required=True,
     )
@@ -72,7 +72,7 @@ def parse_args():
     parser.add_argument(
         "--sft_model_name_or_path",
         type=str,
-        default="/mnt/dolphinfs/hdd_pool/docker/user/hadoop-mtai/llm-fine-tuning/models/public/openai_summarize_tldr_sft",
+        default="CarperAI/openai_summarize_tldr_sft",
         help="SFT model path to pretrained model or model identifier from huggingface.co/models.",
         # required=True,
     )

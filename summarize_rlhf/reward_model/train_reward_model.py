@@ -31,13 +31,13 @@ def parse_args():
     parser.add_argument(
         "--dataset_name",
         type=str,
-        default="/mnt/dolphinfs/hdd_pool/docker/user/hadoop-mtai/llm-fine-tuning/data/rlhf/summarize_from_feedback",
+        default="openai/summarize_from_feedback",
         help="The name or path of the dataset to use (via the datasets library).",
     )
     parser.add_argument(
         "--sft_model_name_or_path",
         type=str,
-        default="/mnt/dolphinfs/hdd_pool/docker/user/hadoop-mtai/llm-fine-tuning/models/public/openai_summarize_tldr_sft",
+        default="CarperAI/openai_summarize_tldr_sft",
         help="SFT model path for init a reward model.",
     )
     parser.add_argument(

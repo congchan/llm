@@ -41,6 +41,12 @@ For an in-depth description of the example, please refer to our [blog post](http
     🩹 Warning: This particular training configuration requires at least 55GB of VRAM and is setup to use two GPUs, decrease `batch_size` in case you're running out of memory.
 
 
+## Evaluation
+Evaluate ROUGE, support deepspeed multi-GPUs data parallel generating:
+```
+deepspeed --num_gpus 8 ds-zero-dp-eval-model-generation.py --model_path outputs/tldr/save_pretrained --output_path outputs/tldr/eval --metrics rouge --batch_size 16
+```
+
 ### Results
 
 The following tables display ROUGE and reward scores on the test set of the TL;DR dataset between SFT and PPO models.
