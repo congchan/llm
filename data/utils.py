@@ -13,3 +13,8 @@ def read_text(path, debug=None):
             line_num += 1
             data.append(line.strip())
     return data
+
+def read_json_line(file):
+    tmp_ls = open(file, 'r', encoding='utf-8').readlines()
+    tmp_ls = [json.loads(_.strip()) for _ in tmp_ls]
+    return tmp_ls
