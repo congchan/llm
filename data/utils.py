@@ -1,5 +1,7 @@
 """data utils"""
 
+import json
+
 def read_text(path, debug=None):
     " read in text data "
     data = []
@@ -13,6 +15,7 @@ def read_text(path, debug=None):
             line_num += 1
             data.append(line.strip())
     return data
+
 
 def read_json_line(file):
     tmp_ls = open(file, 'r', encoding='utf-8').readlines()
