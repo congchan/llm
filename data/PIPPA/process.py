@@ -1,9 +1,12 @@
 from tqdm import tqdm
 import pandas as pd
 import sys
-from constants import USER, ASSIS, DEMO_SAMPLE, PROCESS_DIR, RP_SYSTEM
-
+import json
 import os
+
+from constants import USER, ASSIS, DEMO_SAMPLE, PROCESS_DIR, RP_SYSTEM
+from utils import read_json_line
+
 
 print(PROCESS_DIR)
 os.makedirs(PROCESS_DIR, exist_ok=True)
@@ -67,14 +70,19 @@ def get_session_list(raw_data, id_prefix, src, data_type="conversation"):
 
     return formated_samples
 
-id_prefix = "PIPPA"
-src = "PIPPA"
-formated_samples = get_session_list(raw_json, id_prefix, src)
 
-turn_stats = [len(conversations['conversations'])/2 for conversations in formated_samples]
-print(pd.DataFrame(turn_stats).describe().set_axis([id_prefix], axis=1))
+if __name__ == "__main__":
+    file = "./pippa_deduped.jsonl"
+    raw_json = read_json_line(file)
 
-save_path = os.path.join(PROCESS_DIR, f"{id_prefix}_en_chats.json")
-print(save_path)
-with open(save_path, 'w', encoding='utf-8') as f:
-    f.write(json.dumps(formated_samples, ensure_ascii=False))
+    id_prefix = "PIPPA"
+    src = "PIPPA"
+    formated_samples = get_session_list(raw_json, id_prefix, src)
+
+    turn_stats = [len(conversations['conversations'])/2 for conversations in formated_samples]
+    print(pd.DataFrame(turn_stats).describe().set_axis([id_prefix], axis=1))
+
+    save_path = os.path.join(PROCESS_DIR, f"{id_prefix}_en_chats.json")
+    print(save_path)
+    with open(save_path, 'w', encoding='utf-8') as f:
+        f.write(json.dumps(formated_samples, ensure_ascii=False))
