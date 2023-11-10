@@ -1,11 +1,14 @@
 # -*- coding: utf-8 -*-
+import argparse
+import json
+import os
 
-import collections
+import pandas as pd
 from tqdm import tqdm
 from lingua import Language, LanguageDetectorBuilder
-from constants import USER, ASSIS, RP_SYSTEM, MTRP_SYSTEM
 
-from utils import read_text
+from .constants import USER, ASSIS, DEMO_SAMPLE, PROCESS_DIR, RP_SYSTEM
+from .utils import read_json_line
 
 
 """['AFRIKAANS', 'ALBANIAN', 'ARABIC', 'ARMENIAN', 'AZERBAIJANI', 'BASQUE', 'BELARUSIAN', 'BENGALI', 'BOKMAL', 
@@ -231,3 +234,106 @@ def concurrent_detect_lang_as_completed(data, max_workers):
     end_time = time.time()
     elapsed_time = end_time - start_time
     print("concurrent cost time: ", elapsed_time, "seconds", f"Speed: {len(data) / elapsed_time} samples/s")
+
+
+def get_session_list_pippa(raw_data, id_prefix, src, data_type="conversation"):
+    formated_samples = []
+    for idx, item in tqdm(enumerate(raw_data), total=len(raw_data)):
+        bot_name = item["bot_name"]
+        system = RP_SYSTEM
+        background = item['bot_description'] if item['bot_description'] else item["bot_definitions"]
+        if bot_name:
+            background = f"Background of {bot_name}:\n" + background
+
+        conv_ls = []
+        is_valid = True
+        for turn_id, turn in enumerate(item['conversation']):
+
+            value = turn['message'].strip()
+
+            if turn["is_human"]:
+                if not value or len(value) < 1:
+                    break
+                conv_ls.append(
+                    {'from': USER, 'value': value, "type": "user_query"},
+                )
+            else:
+                if not value or len(value) < 1:
+                    conv_ls.pop()
+                    break
+
+                conv_ls.append(
+                    {'from': bot_name, 'value': value, "type": "bot_query"},
+                )
+
+        if len(conv_ls) > 0 and conv_ls[-1]["from"] == USER:
+            conv_ls.pop()
+
+        if len(conv_ls) < 2:
+            continue
+
+        if is_valid:
+            new_sample = {
+                'id': f'{id_prefix}_{item["bot_id"]}_{str(item["submission_timestamp"])}',
+                "system": system,
+            }
+            if background:
+                new_sample = new_sample | {
+                    "background": background,
+                }
+
+            new_sample = new_sample | {
+                'conversations': conv_ls,
+                'src': src,
+                'type': data_type,
+            }
+            formated_samples.append(new_sample)
+
+    return formated_samples
+
+
+dataset2files = {
+    "PIPPA": ["./data/PIPPA/pippa_deduped.jsonl", ]
+}
+
+dataset2func = {
+    "PIPPA": get_session_list_pippa,
+}
+
+
+def main(dataset):
+    for file in dataset2files.get(dataset):
+        print(file)
+        raw_json = read_json_line(file)
+
+        id_prefix = dataset
+        src = dataset
+        process_func = dataset2func.get(dataset)
+        formated_samples = process_func(raw_json, id_prefix, src)
+
+        # statistic turns
+        print("turn statistics")
+        turn_stats = [len(conversations['conversations']) / 2 for conversations in formated_samples]
+        print(pd.DataFrame(turn_stats).describe().set_axis([id_prefix], axis=1))
+
+        # save processed file
+        save_path = os.path.join(PROCESS_DIR, f"{id_prefix}_en_chats.json")
+        print(save_path)
+        with open(save_path, 'w', encoding='utf-8') as f:
+            f.write(json.dumps(formated_samples, ensure_ascii=False))
+
+
+if __name__ == "__main__":
+    print(PROCESS_DIR)
+    os.makedirs(PROCESS_DIR, exist_ok=True)
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--dataset",
+        type=str,
+        required=True,
+        help="The dataset to be processed.",
+    )
+    args = parser.parse_args()
+
+    main(args.dataset)
