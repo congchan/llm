@@ -2,8 +2,9 @@
 
 import json
 
+
 def read_text(path, debug=None):
-    " read in text data "
+    """read in text data"""
     data = []
     line_num = 1
     with open(path, 'r', encoding='utf-8') as f:
