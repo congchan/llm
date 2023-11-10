@@ -1,6 +1,18 @@
+# -*- coding: utf-8 -*-
 """
 Global constants.
 """
+
+from transformers.trainer_pt_utils import LabelSmoother
+
+
+B_SYS = "<<SYS>>"
+E_SYS = "<</SYS>>"
+
+B_GATT = "[INST]"
+E_GATT = "[/INST]"
+
+IGNORE_TOKEN_ID = LabelSmoother.ignore_index
 
 USER = "user"
 ASSIS = "assistant"
