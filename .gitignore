@@ -1,1 +1,16 @@
+# Python
+__pycache__
+*.pyc
+*.egg-info
+dist
+.venv
+
+# Editor
 .idea
+*.swp
+
+# Other
+.DS_Store
+
+# Build
+build
