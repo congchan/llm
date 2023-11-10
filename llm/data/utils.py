@@ -22,3 +22,11 @@ def read_json_line(file):
     tmp_ls = open(file, 'r', encoding='utf-8').readlines()
     tmp_ls = [json.loads(_.strip()) for _ in tmp_ls]
     return tmp_ls
+
+
+def logging_rank0(*args):
+    if is_initialized():
+        if get_rank() == 0:
+            logging.info(*args)
+    else:
+        print(*args)
