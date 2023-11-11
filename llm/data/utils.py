@@ -1,6 +1,8 @@
 """data utils"""
 
 import json
+import logging
+from torch.distributed import get_rank, is_initialized
 
 
 def read_text(path, debug=None):
