@@ -31,16 +31,16 @@ from transformers.utils import PaddingStrategy
 from deepspeed.utils.zero_to_fp32 import load_state_dict_from_zero_checkpoint, get_fp32_state_dict_from_zero_checkpoint
 
 from reward_utils import (
+    RewardModel,
     freeze_bottom_causal_layers,
     SparsePairwiseTrainer,
-    SparsePairwiseShuffleTrainer, PreTrainedRewardModel,
+    SparsePairwiseShuffleTrainer, 
+    PreTrainedRewardModel,
 )
-
-from reward_modeling.rm_utils import get_logger
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Finetune a reward model.")
+    parser = argparse.ArgumentParser(description="Finetune a transformers model on a causal language modeling task")
     parser.add_argument(
         "--dataset_name",
         type=str,
@@ -48,21 +48,21 @@ def parse_args():
         help="The name or path of the dataset to use (via the datasets library).",
     )
     parser.add_argument(
-        "--init_model_name_or_path",
+        "--sft_model_name_or_path",
         type=str,
         default=None,
-        help="Model path for init a reward model.",
+        help="SFT model path for init a reward model.",
     )
     parser.add_argument(
         "--output_dir",
         type=str,
-        default=None,
+        default="./outputs",
         help="output directory for logs, ckpting, etc..",
     )
     parser.add_argument(
         "--deepspeed_config_file",
         type=str,
-        default="configs/ds_config_zero2.json",
+        default=None,
         help="Specify deepspeed config file.",
     )
     parser.add_argument(
@@ -96,13 +96,13 @@ def parse_args():
     parser.add_argument(
         "--per_device_train_batch_size",
         type=int,
-        default=1,
+        default=8,
         help="The batch size per GPU/TPU core/CPU for training."
     )
     parser.add_argument(
         "--per_device_eval_batch_size",
         type=int,
-        default=1,
+        default=8,
         help="The batch size per GPU/TPU core/CPU for evaluation."
     )
     parser.add_argument(
@@ -164,6 +164,24 @@ def parse_args():
     parser = deepspeed.add_config_arguments(parser)
     args = parser.parse_args()
     return args
+
+
+def get_logger(name, to_file, level=logging.INFO):
+    logger = logging.getLogger(name=name)
+    logger.setLevel(level=level)
+    formatter = logging.Formatter('%(asctime)s-%(name)s-%(levelname)s-%(message)s')
+
+    handler = logging.FileHandler(filename=to_file)
+    handler.setLevel(level=level)
+    handler.setFormatter(formatter)
+
+    console = logging.StreamHandler()
+    console.setLevel(level=level)
+    console.setFormatter(formatter)
+
+    logger.addHandler(handler)
+    logger.addHandler(console)
+    return logger
 
 
 class PairwiseDataset(Dataset):
@@ -230,11 +248,11 @@ class PairwiseDataset(Dataset):
 
 def compute_metrics(eval_preds):
     preds = eval_preds[0]
-    logger.info(f"Monitor: Shape of preds {preds.shape}")
+    logger.info(f"DEBUG: Shape of preds {preds.shape}")
     preds = np.reshape(preds, (-1, 2))
-    logger.info(f"Monitor: chosen mean {np.mean(preds[:, 0])} vs rejected mean {np.mean(preds[:, 1])}")
+    logger.info(f"DEBUG: chosen mean {np.mean(preds[:, 0])} vs rejected mean {np.mean(preds[:, 1])}")
     for idx in [0, 1, -2, -1]:
-        logger.info(f"Monitor: chosen vs rejected, [{idx}] {preds[idx, 0]}: {preds[idx, 1]}")
+        logger.info(f"DEBUG: chosen vs rejected, [{idx}] {preds[idx, 0]}: {preds[idx, 1]}")
     acc = np.sum(preds[:, 0] >= preds[:, 1]) / preds.shape[0]
     return {"accuracy": acc}
 
@@ -311,7 +329,6 @@ if __name__ == "__main__":
         bf16=True,
         load_best_model_at_end=True,
         metric_for_best_model="accuracy",
-        save_total_limit=2,
         remove_unused_columns=False,
         logging_first_step=True,
         label_names=["labels"],
@@ -343,7 +360,7 @@ if __name__ == "__main__":
                 "the `--output_dir` or add `--overwrite_output_dir` to train from scratch."
             )
 
-    tokenizer = AutoTokenizer.from_pretrained(args.init_model_name_or_path)
+    tokenizer = AutoTokenizer.from_pretrained(args.sft_model_name_or_path)
     tokenizer.truncation_side = "left"
     tokenizer.add_special_tokens(
         {"additional_special_tokens": ["<|system|>", "<|assistant|>", "<|user|>", "<|im_end|>"]}
@@ -353,16 +370,17 @@ if __name__ == "__main__":
         logger.info(f"Set tokenizer.pad_token to: {tokenizer.pad_token}")
     logger.info(f"tokenizer: {tokenizer}")
 
-    hf_config = AutoConfig.from_pretrained(args.init_model_name_or_path)
-    model = AutoModelForSequenceClassification.from_pretrained(args.init_model_name_or_path, trust_remote_code=True)
+    hf_config = AutoConfig.from_pretrained(args.sft_model_name_or_path)
+    model = AutoModelForSequenceClassification.from_pretrained(args.sft_model_name_or_path, trust_remote_code=True)
     model.config.pad_token_id = tokenizer.pad_token_id
     model.resize_token_embeddings(len(tokenizer))
     logger.info(f"Set model pad_token_id to: {model.model.config.pad_token_id}")
+    model.config.max_position_embeddings = args.max_seq_len
     logger.info("Model:")
     logger.info(f"{model}")
     num_layers, num_layers_unfrozen = freeze_bottom_causal_layers(model, args.how_layers_unfrozen)
 
-    logger.info(f"Model: {args.init_model_name_or_path}")
+    logger.info(f"Model: {args.sft_model_name_or_path}")
     logger.info(f"Model num_layers: {num_layers}")
     logger.info(f"Model num_unfrozen: {num_layers_unfrozen}")
 
@@ -426,6 +444,7 @@ if __name__ == "__main__":
         for checkpoint_subdir in checkpoint_subdirs:
             logger.info(f"{checkpoint_subdir}")
             tokenizer.save_pretrained(checkpoint_subdir)
+            # hf_config.save_pretrained(checkpoint_subdir)
 
         metrics = train_result.metrics
         metrics["train_samples"] = len(train_dataset)

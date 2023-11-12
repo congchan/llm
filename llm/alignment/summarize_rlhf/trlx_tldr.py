@@ -39,7 +39,7 @@ def parse_args():
     parser.add_argument(
         "--trl_config_file",
         type=str,
-        default="configs/ppo_tldr_6B.yml",
+        default="configs/ppo_tldr.yml",
         help="The config file for trlx trainer.",
     )
     parser.add_argument(

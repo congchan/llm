@@ -1,0 +1,29 @@
+{
+    "bf16": {
+      "enabled": true
+    },
+    "zero_optimization": {
+      "stage": 2,
+      "offload_param": {
+        "device": "cpu"
+      },
+      "offload_optimizer": {
+        "device": "cpu"
+      },
+      "gather_16bit_weights_on_model_save": true,
+      "round_robin_gradients": true,
+      "allgather_partitions": true,
+      "allgather_bucket_size": 5e8,
+      "contiguous_gradients": true,
+      "reduce_scatter": true,
+      "reduce_bucket_size": 5e8
+    },
+    "zero_allow_untested_optimizer": true,
+    "zero_force_ds_cpu_optimizer": false,
+    "gradient_accumulation_steps": "auto",
+    "gradient_clipping": "auto",
+    "steps_per_print": 2000,
+    "train_batch_size": "auto",
+    "train_micro_batch_size_per_gpu": "auto",
+    "wall_clock_breakdown": false
+}

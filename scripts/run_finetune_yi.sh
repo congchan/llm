@@ -1,10 +1,12 @@
+cd "$(dirname "${BASH_SOURCE[0]}")/llm/"
+
 PYTHON="torchrun"
 export LAUNCHER="
     $PYTHON \
     "
 
 
-model_name_or_path=Yi-34B
+model_name_or_path="01-ai/Yi-34B"
 data_path=train.json
 eval_data_path=valid.json
 output_dir=run
