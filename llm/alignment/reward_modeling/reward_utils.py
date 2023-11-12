@@ -191,16 +191,3 @@ def freeze_bottom_causal_layers(model: nn.Module, num_layers_unfrozen):
         layer.requires_grad_(False)
 
     return num_layers, num_layers_unfrozen
-
-
-def make_reward_model(model_name, type_t, tok_path, save_model):
-    if type_t == "classification":
-        config = AutoConfig.from_pretrained(model_name)
-        config.num_labels = 1
-        reward_model = AutoModelForSequenceClassification.from_config(config)
-    elif type_t == "causal":
-        tokenizer = AutoTokenizer.from_pretrained(tok_path)
-        reward_model = RewardModel(model_name, tokenizer(tokenizer.eos_token)["input_ids"][0], save_model)
-    else:
-        raise ValueError("Unsupported reward model type {}".format(type_t))
-    return reward_model
