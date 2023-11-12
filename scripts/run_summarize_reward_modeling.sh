@@ -1,20 +1,20 @@
 #/usr/bin/env bash
 
-cd "$(dirname "${BASH_SOURCE[0]}")/llm/alignment/reward_modeling/"
+cd "$(dirname "${BASH_SOURCE[0]}")/../llm/alignment/summarize_rlhf/reward_model/"
 
 deepspeed_config_file=ds_config_zero2.json
-dataset_name=data/reward_dataset/
+dataset_name="openai/summarize_from_feedback"
 per_device_train_batch_size=1
 gradient_accumulation_steps=1
-sft_model_name_or_path=IDEA-CCNL/Ziya-LLaMA-7B-Reward
+sft_model_name_or_path="CarperAI/openai_summarize_tldr_sft"
 how_layers_unfrozen=0.6
-output_dir=outputs
+output_dir=outputs/summarize_tldr_rm
 num_train_epochs=2
 do_shuffle=0
 
-export LAUNCHER="deepspeed  "
+export LAUNCHER="deepspeed "
 export CMD=" \
-    $LAUNCHER train_reward.py  \
+    $LAUNCHER train_reward_model.py  \
     --deepspeed_config_file $deepspeed_config_file \
     --dataset_name $dataset_name \
     --per_device_train_batch_size $per_device_train_batch_size \

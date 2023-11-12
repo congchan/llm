@@ -1,4 +1,4 @@
-cd "$(dirname "${BASH_SOURCE[0]}")/llm/alignment/summarize_rlhf/"
+cd "$(dirname "${BASH_SOURCE[0]}")/../llm/alignment/summarize_rlhf/"
 
 
 num_processes=7
@@ -12,7 +12,7 @@ output_dir=outputs/tldr
 trl_config_file=configs/ppo_tldr.yml
 n_eval_prompts=2048
 rw_model_batch_size=28
-rw_model_name_or_path=reward_model/outputs/ziyarw7b/checkpoint-best/
+rw_model_name_or_path=reward_model/outputs/summarize_tldr_rm/checkpoint-best/
 dataset_name=data/prompts/
 
 export CMD=" \
