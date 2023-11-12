@@ -1,4 +1,4 @@
-cd "$(dirname "${BASH_SOURCE[0]}")/llm/"
+cd "$(dirname "${BASH_SOURCE[0]}")/../llm/"
 
 PYTHON="torchrun"
 export LAUNCHER="

@@ -12,11 +12,11 @@ train:
   tracker: "tensorboard"
 
 model:
-  model_path: "openai_summarize_tldr_sft"
+  model_path: "CarperAI/openai_summarize_tldr_sft"
   num_layers_unfrozen: 8
 
 tokenizer:
-  tokenizer_path: "openai_summarize_tldr_sft"
+  tokenizer_path: "CarperAI/openai_summarize_tldr_sft"
   truncation_side: "right"
 
 optimizer:

@@ -46,6 +46,27 @@ pip3 install -U xformers
 # Alignment
 I have reproduce Stiennon, Nisan, et al. Learning to Summarize from Human Feedback. arXiv:2009.01325, arXiv, 15 Feb. 2022. arXiv.org, http://arxiv.org/abs/2009.01325.
 
+## Learning to Summarize from Human Feedback
+1. Train SFT: I skipped sft and make use of open-sourced as sft's ability is well tested and demonstrated.
+    
+    Checkpoint: [SFT](https://huggingface.co/CarperAI/openai_summarize_tldr_sft)
+
+
+2. Train Reward Model:
+    ```
+    cd scripts
+    bash run_summarize_reward_modeling.sh
+    ```
+
+3. PPO training: note that the code only support single node and multi-gpus training. I use 7 gpus for PPO training and 1 gpu for reward model serving.
+    ```
+    cd scripts
+    bash run_summarize_rlhf.sh
+    ```
+
+
+## General assistant alignment
+
 
 
 # Citation
